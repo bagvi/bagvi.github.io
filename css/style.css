@@ -1,5 +1,6 @@
 * {
-    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+            box-sizing: border-box;
     padding: 0;
     margin: 0;
 }
@@ -30,6 +31,8 @@ select {
     width: 80%;
     font-size: 16px;
     background: rgb(255, 255, 255);
+    -webkit-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
     transition: all 0.3s ease-in-out;
     margin: 20px auto;
     padding-left: 5px;
@@ -42,7 +45,8 @@ select {
 .wrapper {
     max-width: 780px;
     background: #fff;
-    box-shadow: 0 0 5px #000;
+    -webkit-box-shadow: 0 0 5px #000;
+            box-shadow: 0 0 5px #000;
     text-align: center;
     position: relative;
     margin: 0 auto;
@@ -58,11 +62,21 @@ select {
 }
 
 .delivery-form{
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    justify-content: flex-start;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: row;
+            flex-direction: row;
+    -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+    -webkit-box-align: start;
+        -ms-flex-align: start;
+            align-items: flex-start;
+    -webkit-box-pack: start;
+        -ms-flex-pack: start;
+            justify-content: flex-start;
     margin: 0 auto;
     width: 100%;
     min-height: 500px;
@@ -94,9 +108,15 @@ select {
 /* Checkbox */
 
 .checkbox{
+    display: -webkit-box;
+    display: -ms-flexbox;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+    -webkit-box-align: center;
+        -ms-flex-align: center;
+            align-items: center;
     margin: 18px 0;
     
 }
@@ -110,13 +130,16 @@ select {
     width: 40px;
     height: 20px;
     position: relative;
-    -moz-appearance: none;
-         appearance: none;
     -webkit-appearance: none;
+        -moz-appearance: none;
+            appearance: none;
     background: #fff;
     outline: none;
     border-radius: 20px;
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+    -webkit-transition: .5s;
+    -o-transition: .5s;
     transition: .5s;
 }
 
@@ -134,8 +157,13 @@ select {
     top: 0;
     left: 0;
     background: #949494;
-    transform: scale(1.1);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    -webkit-transform: scale(1.1);
+        -ms-transform: scale(1.1);
+            transform: scale(1.1);
+    -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    -webkit-transition: .5s;
+    -o-transition: .5s;
     transition: .5s;
 }
 
@@ -152,6 +180,8 @@ select {
     border: none;
     cursor: pointer;
     color: #FFF;
+    -webkit-transition: linear .2s;
+    -o-transition: linear .2s;
     transition: linear .2s;
     font-weight: 600;
     padding: 10px 0 25px;
@@ -195,7 +225,7 @@ select {
 @media (max-width:768px) {
     .form-group{
         width: 100%;
-        padding: 0;
+        padding: 15px;
     }
     
     .delivery-coast{
