@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru-RU">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Адрес доставки</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <link rel="stylesheet" href="./css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="container">
+        <div class="wrapper">
+            <div class="delivery-title">
+                <h2>Укажите адрес доставки</h2>
+            </div>
+            <!-- Форма -->
+            <div class="delivery-form">
+                <div class="form-group">
+                    <form id="form-address" action="#" method="POST">
+                        <!-- Чекбокс ранее использованного адреса -->
+                        <div class="checkbox">
+                            <label for="checkbox">Использовать ранее указанный адрес</label>
+                            <input type="checkbox" class="checkbox-iphone" name="checkbox" id="recent-address-checkbox">
+                        </div>
+
+                        <div class="unknown-address">
+                            <!-- Ввод данных адреса доставки -->
+                            <label for="city">Населенный пункт</label>
+                            <select id="city" name="city" placeholder="Город" required>
+                                <option value="Киров">Киров</option>
+                                <option value="Нововятск">Нововятск</option>
+                                <option value="Коминтерн">Коминтерн</option>
+                                <option value="Гнусино">Гнусино</option>
+                                <option value="Дороничи">Дороничи</option>
+                                <option value="Слободской">Слободской</option>
+                                <option value="Вахруши">Вахруши</option>
+                            </select>
+
+                            <label for="street">Улица</label>
+                            <input type="text" id="street" name="street" value="" placeholder="улица" required>
+
+                            <label for="home">Дом/корпус</label>
+                            <input type="text" id="home" name="home" value="" placeholder="номер дома или корпуса"
+                                required>
+
+                            <label for="entrance">Подъезд</label>
+                            <input type="text" id="entrance" name="entrance" value="" placeholder="подъезд">
+
+                            <label for="level">Этаж</label>
+                            <input type="text" id="level" name="level" value="" placeholder="этаж">
+
+                            <label for="apartment">Номер квартиры</label>
+                            <input type="number" id="apartment" name="apartment" value="" placeholder="номер квартиры">
+
+                            <label for="comments">Комментарии к заказу</label>
+                            <textarea id="comments" name="comments" rows="4" name="comment"
+                                placeholder="Комментарий"></textarea>
+
+                        </div>
+
+                        <div class="recent-address d-none">
+                            <!-- Выбор ранее использованных адресов -->
+                            <label for="recent-address">Выберите адрес</label>
+                            <select id="recent-address" name="recent-address">
+                                <option value="" hidden="">Выберите адрес</option>
+                                <option id="recentAddress-1" value="1">Нововятск Советская дом 13 квартира 3,
+                                    подьезд , этаж ,
+                                    стоимость доставки 180,00 руб.</option>
+                                <option id="recentAddress-2" value="2">Киров Московская дом 23 квартира 15, подьезд
+                                    , этаж ,
+                                    стоимость доставки 110,00 руб.</option>
+                                <option id="recentAddress-3" value="3">Киров Р Ердякова дом 42а квартира 5, подьезд
+                                    , этаж ,
+                                    стоимость доставки 110,00 руб.</option>
+                            </select>
+                        </div>
+
+                        <!-- Кнопка отправки формы на сервер -->
+                        <div class="form-submit">
+                            <button type="submit">Подтвердить</button>
+                        </div>
+
+                    </form>
+                </div>
+
+                <!-- Блок с ценами доставки -->
+                <div class="delivery-coast">
+                    <div class="delivery-coast-description">
+                        <h4>Стоимость доставки:</h4>
+                        <p>Киров - 110,00 руб.</p>
+                        <p>Нововятск - 180,00 руб.</p>
+                        <p>пос. Коминтерн - 180,00 руб.</p>
+                        <p>д. Гнусино - 180,00 руб.</p>
+                        <p>пос. Дороничи - 180,00 руб.</p>
+                        <p>г. Слободской - 600,00 руб.</p>
+                        <p>пос. Вахруши - 500,00 руб.</p>
+                        <p>пос. Сидоровка - 350,00 руб.</p>
+                        <p>пгт. Радужный - 180,00 руб.</p>
+                        <p>г. Кирово-Чепецк - 600,00 руб.</p>
+                        <p>пос. Макарье - 180,00 руб.</p>
+                        <p>пос. Костино - 180,00 руб.</p>
+                        <p>пос. Лянгасово - 180,00 руб.</p>
+                        <p>д.Малая/Большая Субботиха - 180,00 руб.</p>
+                        <p>пос. Порошино - 180,00 руб.</p>
+                        <p>Аэропорт Победилово - 290,00 руб.</p>
+                        <p>с. Митино - 350,00 руб.</p>
+                        <p>д. Шубино - 180,00 руб.</p>
+                        <p>д. Большая Гора - 180,00 руб.</p>
+                        <p>д. Трушковы - 290,00 руб.</p>
+                        <p>п. Ганино - 110,00 руб.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Кнопка закрытия иодального окна -->
+            <a id="close-modal">Закрыть</a>
+        </div>
+    </div>
+
+    <script src="./js/main.js"></script>
+</body>
+
+</html>
