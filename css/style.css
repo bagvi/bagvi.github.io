@@ -1,235 +1,107 @@
-* {
-    -webkit-box-sizing: border-box;
-            box-sizing: border-box;
-    padding: 0;
-    margin: 0;
-}
-
-html {
-    font-family: 'Nunito', sans-serif;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
 body {
-    text-rendering: optimizeLegibility;
-    font-weight: 400;
-    font-style: normal;
-    background-color: rgba(215, 215, 215, 1);
-}
+    background-image: url("https://www.toptal.com/designers/subtlepatterns/patterns/concrete-texture.png");
+    display: flex;
+    flex-wrap: wrap;
+    height: 100vh;
+    align-items: center;
+    justify-content: center;
+    padding: 0 20px;
+  }
 
-input[type="number"],
-input[type="text"],
-textarea,
-select {
-    display: block;
-    min-height: 25px;
-    border: solid 1px rgba(0, 0, 0, 0.5);
-    outline: none;
-    color: #151515;
-    font-family: 'Nunito', sans-serif;
-    width: 80%;
-    font-size: 16px;
-    background: rgb(255, 255, 255);
-    -webkit-transition: all 0.3s ease-in-out;
-    -o-transition: all 0.3s ease-in-out;
-    transition: all 0.3s ease-in-out;
-    margin: 20px auto;
-    padding-left: 5px;
-}
+  /*       Just setting CSS for the page   */
 
-.container {
-    margin: 35px;
-}
+* {
+    margin: 0;
+    padding: 0;
+  }
 
-.wrapper {
-    max-width: 780px;
-    background: #fff;
-    -webkit-box-shadow: 0 0 5px #000;
-            box-shadow: 0 0 5px #000;
+  
+  .position {
+    margin-left: auto;
+    margin-right: auto;
     text-align: center;
-    position: relative;
-    margin: 0 auto;
-}
-
-/* Form */
-
-.delivery-title h2{
-    background-color:#f2f2f2;
-    margin: 0 0 10px 0;
-    padding: 10px 0;
-    border-bottom: 1px solid black;
-}
-
-.delivery-form{
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-orient: horizontal;
-    -webkit-box-direction: normal;
-        -ms-flex-direction: row;
-            flex-direction: row;
-    -ms-flex-wrap: wrap;
-        flex-wrap: wrap;
-    -webkit-box-align: start;
-        -ms-flex-align: start;
-            align-items: flex-start;
-    -webkit-box-pack: start;
-        -ms-flex-pack: start;
-            justify-content: flex-start;
-    margin: 0 auto;
-    width: 100%;
-    min-height: 500px;
-}
-
-.form-group{
-    width: 65%;
-    padding-bottom: 15px;
-    padding-right: 40px;
-}
-
-.delivery-coast{
-    width: 35%;
-    text-align: left;
-    padding-left: 10px;
-    border-left: 1px solid black;
-    margin-bottom: 20px;
-}
-
-.delivery-coast-description p{
-    font-size: 14px;
-    margin: 0 auto;
-}
-
-.delivery-coast-description h4{
-    margin: 18px 0;
-}
-
-/* Checkbox */
-
-.checkbox{
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-pack: center;
-        -ms-flex-pack: center;
-            justify-content: center;
-    -webkit-box-align: center;
-        -ms-flex-align: center;
-            align-items: center;
-    padding: 20px;
-}
-
-.checkbox label {
-    margin-right: 30px;
-}
-
-.checkbox-iphone {
-    cursor: pointer;
-    width: 40px;
-    height: 20px;
-    position: relative;
-    -webkit-appearance: none;
-        -moz-appearance: none;
-            appearance: none;
-    background: #fff;
-    outline: none;
-    border-radius: 20px;
-    -webkit-box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
-    -webkit-transition: .5s;
-    -o-transition: .5s;
-    transition: .5s;
-}
-
-.checkbox-iphone:checked:before {
-    background: #169bd5;
-}
-
-.checkbox-iphone:before {
-    content: '';
-    display: block;
-    width: 20px;
-    height: 20px;
-    border-radius: 20px;
+    margin-top: 15%;
+  }
+  
+  #workarea {
     position: absolute;
+    width: 100%;
+    height: 100%;
+    background-color: #1e1a3e;
+    font-family: Raleway;
+  }
+  
+  /*    start code for the actual button:         */
+  
+  
+  /*   
+      Spot is the span on the inside of the href that
+      fills the parent and makes the hover and link work
+      for the entire div
+  */
+  
+  .spot {
+    position: absolute;
+    width: 100%;
+    height: 100%;
     top: 0;
     left: 0;
-    background: #949494;
-    -webkit-transform: scale(1.1);
-        -ms-transform: scale(1.1);
-            transform: scale(1.1);
-    -webkit-box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-    -webkit-transition: .5s;
-    -o-transition: .5s;
-    transition: .5s;
-}
-
-.checkbox-iphone:checked:before {
-    left: 20px;
-}
-
-/* Submit button */
-.form-submit button {
-    width: 180px;
+  }
+  /*
+      This is the outer svg wrapper that the SVG itself will 
+      fill. Multiple svg-wrapper classes can be put side by side.
+  */
+  
+  .svg-wrapper {
+    margin-top: 0;
+    position: relative;
+    width: 150px;
+    /*make sure to use same height/width as in the html*/
     height: 40px;
-    background-color: rgba(22, 155, 213, 1);
-    border-radius: 5px;
-    border: none;
-    cursor: pointer;
-    color: #FFF;
-    -webkit-transition: linear .2s;
-    -o-transition: linear .2s;
-    transition: linear .2s;
-    font-weight: 600;
-    padding: 10px 0 25px;
-}
-
-.form-submit button:hover {
-    opacity: .8;
-}
-
-#close-modal{
-    position: absolute;
-    top: -35px;
-    right: -35px;
-    display: block;
-    width: 30px;
-    height: 30px;
-    text-indent: -9999px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-image: url(https://d1icd6shlvmxi6.cloudfront.net/gsc/TIYGIJ/cf/93/8f/cf938fdc469f4135ab2fab6650dde6d4/images/home/u3.png?token=5d484d0223093c6013c12a8264810aba1d746c5a758b4105102974178f9b6089);
-    cursor: pointer;
-}
-
-/* Display block and none elements*/
-.d-none {
-    opacity: 0;
-    display: none;
-}
-
-.d-block {
-    opacity: 1;
-    display: block;
-}
-
-.unknown-address label,
-.recent-address label {
-    display: none;
-}
-
-@media (max-width:768px) {
-    .form-group{
-        width: 100%;
-        padding: 15px;
-    }
-    
-    .delivery-coast{
-        width: 100%;
-        text-align: center;
-        border-left: none;
-    }
-}
+    display: inline-block;
+    border-radius: 3px;
+    margin-left: 5px;
+    margin-right: 5px
+  }
+  /*
+    This is where we define the fill, color, thickness,
+    and stroke pattern of the SVG when there is no hover.
+    The dasharray and offset together define the line position
+    under the words. Here's also where the transition speed is set.
+  */
+  
+  #shape {
+    stroke-width: 6px;
+    fill: transparent;
+    stroke: #009FFD;
+    stroke-dasharray: 85 400;
+    stroke-dashoffset: -220;
+    transition: 1s all ease;
+  }
+  /* 
+      Pushing the text up into the SVG. Without this the
+      text would be below the div's.
+  */
+  
+  #text {
+    margin-top: -35px;
+    text-align: center;
+  }
+  
+  #text a {
+    color: white;
+    text-decoration: none;
+    font-weight: 100;
+    font-size: 1.1em;
+  }
+  /* 
+      Changing the shape on hover. I change the color of the stroke,
+  make it thinner, then set it to again wrap around the entire parent element.
+  */
+  
+  .svg-wrapper:hover #shape {
+    stroke-dasharray: 50 0;
+    stroke-width: 3px;
+    stroke-dashoffset: 0;
+    stroke: #06D6A0;
+  }
