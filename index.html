@@ -6,29 +6,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script src="https://telegram.org"></script>
     <style>
-        :root {
-            --tg-safe-offset: 0px;
-        }
 
         body {
             margin: 0;
             padding: 0;
-            background: var(--tg-theme-bg-color, #fff);
-            /* Убираем лишние сдвиги у body, всё через хедер */
             overflow-x: hidden;
         }
 
         .header-container {
             background: #0088cc;
             color: white;
-            position: relative; /* Не используем fixed, чтобы не воевать с вьюпортом */
-            width: 100%;
-            
-            /* ФОРМУЛА ПРАВИЛЬНОГО ОТСТУПА: */
-            /* Мы ПЛЮСУЕМ системный отступ (46-48px) и ваш визуальный padding (10px) */
-            padding-top: calc(var(--tg-safe-offset) + 10px);
-            padding-bottom: 10px;
-            
+            width: 100%;            
             display: flex;
             justify-content: center;
             align-items: center;
