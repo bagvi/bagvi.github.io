@@ -1,44 +1,86 @@
 <!DOCTYPE html>
-<html lang="ru-RU">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebDeveloper</title>
-    <link rel="stylesheet" href="./css/style.css">
+    <title>Telegram Mini App Example</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!-- Официальный скрипт Telegram -->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+            /* Основные отступы для безопасных зон */
+            padding-top: var(--tg-content-safe-area-inset-top, 0px); /* Отступ сверху для кнопок "Закрыть" и "..." */
+            padding-bottom: var(--tg-content-safe-area-inset-bottom, 0px);
+            padding-left: var(--tg-content-safe-area-inset-left, 0px);
+            padding-right: var(--tg-content-safe-area-inset-right, 0px);
+            box-sizing: border-box;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        .content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 80%;
+            max-width: 400px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #0088cc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0077bb;
+        }
+    </style>
 </head>
 <body>
+    <div class="content">
+        <h1>Привет из Mini App!</h1>
+        <p>Это контент, который не должен перекрываться кнопками Telegram.</p>
+        <p>Нажми кнопку ниже, чтобы перейти в fullscreen.</p>
+        <button id="fullscreen-btn">Войти в Fullscreen</button>
+    </div>
 
-    <div id="workarea">
-        <div class="position">
-      
-          <!--start button, nothing above this is necessary -->
-          <div class="svg-wrapper">
-            <svg height="40" width="150" xmlns="http://www.w3.org/2000/svg">
-              <rect id="shape" height="40" width="150" />
-              <div id="text">
-                <a href="#"><span class="spot"></span>Кнопка РАЗ</a>
-              </div>
-            </svg>
-          </div>
-          <!--Next button -->
-          <div class="svg-wrapper">
-            <svg height="40" width="150" xmlns="http://www.w3.org/2000/svg">
-              <rect id="shape" height="40" width="150" />
-              <div id="text">
-                <a href="#"><span class="spot"></span>Кнопка ДВА</a>
-              </div>
-            </svg>
-          </div>
-          <!--Next button -->
-          <div class="svg-wrapper">
-            <svg height="40" width="150" xmlns="http://www.w3.org/2000/svg">
-              <rect id="shape" height="40" width="150" />
-              <div id="text">
-                <a href="#"><span class="spot"></span>Кнопка ТРИ</a>
-              </div>
-            </svg>
-          </div>
-          <!--End button -->
-      
+    <script>
+        // Инициализация Web App
+        Telegram.WebApp.ready();
+        
+        // Расширение на весь viewport (опционально, для старта)
+        Telegram.WebApp.expand();
+
+        // Установка цвета заголовка (чтобы не было прозрачным в fullscreen)
+        Telegram.WebApp.setHeaderColor('secondary_bg_color');
+
+        // Кнопка для fullscreen
+        document.getElementById('fullscreen-btn').addEventListener('click', () => {
+            Telegram.WebApp.requestFullscreen()
+                .then(() => {
+                    console.log('Вошли в fullscreen');
+                })
+                .catch((error) => {
+                    console.error('Ошибка fullscreen:', error);
+                });
+        });
+
+        // Пример слушателя события изменения safe areas (опционально)
+        Telegram.WebApp.onEvent('content_safe_area_changed', (event) => {
+            console.log('Новые insets:', event);
+            // Можно динамически обновить стили, например:
+            document.body.style.paddingTop = `${event.top}px`;
+        });
+    </script>
 </body>
 </html>
