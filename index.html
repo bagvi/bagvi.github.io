@@ -6,88 +6,96 @@
     <script src="https://telegram.org"></script>
     <style>
         :root {
-            /* Базовое значение из JS или 0 */
-            --tg-safe-top: 0px;
+            --tg-top-padding: 0px;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background: var(--tg-theme-bg-color, #fff);
-            color: var(--tg-theme-text-color, #000);
+            background: var(--tg-theme-bg-color, #ffffff);
             font-family: sans-serif;
         }
 
-        .header {
+        /* Ключевой блок */
+        .header-wrapper {
             background: #0088cc;
             color: white;
-            /* ВАЖНО: Используем box-sizing: content-box для надежности */
-            box-sizing: content-box;
-            
-            /* Суммируем отступ от TG (46px) + визуальный запас (минимум 15-20px) */
-            padding-top: calc(var(--tg-safe-top) + 16px);
-            padding-bottom: 16px;
-            padding-left: 20px;
-            padding-right: 80px; /* Больше справа, чтобы текст не залез под кнопки "..." */
-            
-            text-align: left;
-            font-size: 18px;
+            /* ВАЖНО: padding-top — это и есть наш щит от кнопок */
+            padding-top: var(--tg-top-padding);
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+        }
+
+        .header-content {
+            /* Это видимая часть заголовка */
+            height: 56px; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-weight: bold;
+            padding: 0 15px;
+            text-align: center;
         }
 
         .container { padding: 20px; text-align: center; }
-        button { padding: 15px; width: 100%; border-radius: 12px; border: none; background: #0088cc; color: white; cursor: pointer; }
+        button { padding: 15px; width: 100%; border-radius: 12px; border: none; background: #0088cc; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <header class="header" id="myHeader">
-        ЗАГОЛОВОК ПРИЛОЖЕНИЯ
-    </header>
+    <div class="header-wrapper">
+        <div class="header-content">
+            ЗАГОЛОВОК ПРИЛОЖЕНИЯ
+        </div>
+    </div>
 
     <div class="container">
-        <button onclick="toggleFS()">ПЕРЕКЛЮЧИТЬ FULLSCREEN</button>
-        <p id="info" style="font-size: 12px; color: gray; margin-top: 10px;"></p>
+        <button onclick="tg.requestFullscreen()">ВКЛЮЧИТЬ FULLSCREEN</button>
+        <button onclick="tg.exitFullscreen()" style="margin-top:10px; background:#666;">ВЫЙТИ</button>
+        
+        <div id="log" style="margin-top:20px; font-size:11px; text-align:left; background:#eee; padding:10px; border-radius:5px;"></div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
 
-        function sync() {
-            // Берем максимум из доступных отступов
-            let top = Math.max(
-                tg.contentSafeAreaInset?.top || 0,
-                tg.safeAreaInset?.top || 0,
-                0
-            );
+        function updateOffsets() {
+            // В режиме Fullscreen Telegram отдает contentSafeAreaInset.
+            // Если он есть (46px), мы используем его.
+            // Если его нет, используем safeAreaInset.
+            let topInset = 0;
 
-            // ФИКС ДЛЯ ANDROID/iOS: если мы в fullscreen, 
-            // и значение подозрительно маленькое (до 50px), 
-            // добавляем принудительный визуальный буфер.
-            if (tg.isFullscreen && top > 0) {
-                // Если кнопки все еще перекрывают, можно увеличить это число
-                document.documentElement.style.setProperty('--tg-safe-top', top + 'px');
-            } else {
-                document.documentElement.style.setProperty('--tg-safe-top', top + 'px');
+            if (tg.contentSafeAreaInset && tg.contentSafeAreaInset.top > 0) {
+                topInset = tg.contentSafeAreaInset.top;
+            } else if (tg.safeAreaInset && tg.safeAreaInset.top > 0) {
+                topInset = tg.safeAreaInset.top;
             }
 
-            document.getElementById('info').innerText = `API Top: ${top}px | Fullscreen: ${tg.isFullscreen}`;
+            // ПРИНУДИТЕЛЬНЫЙ ФИКС:
+            // Если мы видим, что мы в Fullscreen, но API отдает 0 (баг) 
+            // или если 46px все равно мало, можно добавить константу.
+            // Но сначала проверим чистый результат от API:
+            document.documentElement.style.setProperty('--tg-top-padding', topInset + 'px');
+
+            document.getElementById('log').innerHTML = `
+                Full: ${tg.isFullscreen} <br>
+                Content Top: ${tg.contentSafeAreaInset?.top}px <br>
+                Safe Top: ${tg.safeAreaInset?.top}px <br>
+                Final Padding: ${topInset}px
+            `;
         }
 
-        tg.onEvent('contentSafeAreaChanged', sync);
-        tg.onEvent('safeAreaChanged', sync);
-        tg.onEvent('fullscreenChanged', sync);
+        tg.onEvent('contentSafeAreaChanged', updateOffsets);
+        tg.onEvent('safeAreaChanged', updateOffsets);
+        tg.onEvent('fullscreenChanged', updateOffsets);
 
         // Инициализация
-        sync();
-        // На некоторых устройствах данные обновляются через мгновение после загрузки
-        setTimeout(sync, 200);
-
-        function toggleFS() {
-            if (tg.isFullscreen) { tg.exitFullscreen(); } 
-            else { tg.requestFullscreen(); }
-        }
+        updateOffsets();
+        // Задержка для Android, чтобы API успело проснуться
+        setTimeout(updateOffsets, 300);
     </script>
 </body>
 </html>
