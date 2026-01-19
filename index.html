@@ -1,46 +1,99 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>TMA Fullscreen Demo</title>
+    <!-- Подключаем скрипт Telegram -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            /* Резервные значения, если API не вернуло данные */
+            --tg-safe-area-top: 0px;
+            --tg-safe-area-bottom: 0px;
+        }
+
         body {
             margin: 0;
             padding: 0;
-            font-family: Arial, sans-serif;
+            background-color: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            font-family: sans-serif;
+            /* Используем переменную для верхнего отступа */
+            padding-top: var(--tg-safe-area-top);
+            padding-bottom: var(--tg-safe-area-bottom);
+            box-sizing: border-box;
+            height: 100vh;
         }
-        
+
+        .header {
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #ccc;
+        }
+
         .content {
-            /* ЭТО ВАЖНО: используем telegram safe area */
-            padding-top: var(--tg-viewport-safe-area-inset-top, 0px);
-            padding-bottom: var(--tg-viewport-safe-area-inset-bottom, 0px);
-            padding-left: 20px;
-            padding-right: 20px;
-            min-height: 100vh;
-            background: lightblue;
-        }
-        
-        h1 {
-            background: white;
             padding: 20px;
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #4caf50;
+            color: white;
             border-radius: 10px;
-            margin-top: 0;
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
+
+    <div class="header">
+        <strong>Заголовок приложения</strong>
+    </div>
+
     <div class="content">
-        <h1>Заголовок не перекрывается</h1>
-        <p>Простой текст для теста</p>
-        <button onclick="toggleFullscreen()">Fullscreen</button>
+        <p>Этот контент не будет перекрыт кнопками "Закрыть" или "...".</p>
+        <div id="fs-status" class="status-badge">Режим: Обычный</div>
+        <button onclick="toggleFullscreen()" style="margin-top: 20px; padding: 10px;">
+            Переключить Fullscreen
+        </button>
     </div>
 
     <script>
-        Telegram.WebApp.ready();
-        
+        const tg = window.Telegram.WebApp;
+
+        // 1. Инициализация и расширение
+        tg.ready();
+        tg.expand();
+
+        // 2. Функция обновления отступов
+        function updateSafeAreas() {
+            // В новых версиях API (2025-2026) используем safeAreaInset
+            const topInset = tg.safeAreaInset ? tg.safeAreaInset.top : 0;
+            const bottomInset = tg.safeAreaInset ? tg.safeAreaInset.bottom : 0;
+
+            document.documentElement.style.setProperty('--tg-safe-area-top', topInset + 'px');
+            document.documentElement.style.setProperty('--tg-safe-area-bottom', bottomInset + 'px');
+            
+            document.getElementById('fs-status').innerText = tg.isFullscreen ? 'Режим: Fullscreen' : 'Режим: Обычный';
+        }
+
+        // 3. Слушаем изменения безопасной зоны и режима экрана
+        tg.onEvent('safeAreaChanged', updateSafeAreas);
+        tg.onEvent('fullscreenChanged', updateSafeAreas);
+
+        // Начальный вызов
+        updateSafeAreas();
+
+        // Переключение полноэкранного режима
         function toggleFullscreen() {
-            if (!Telegram.WebApp.isExpanded) {
-                Telegram.WebApp.expand();
+            if (tg.isFullscreen) {
+                tg.exitFullscreen();
+            } else {
+                tg.requestFullscreen();
             }
         }
     </script>
