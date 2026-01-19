@@ -2,51 +2,48 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <!-- viewport-fit=cover критически важен -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script src="https://telegram.org"></script>
     <style>
         :root {
-            --safe-area-top: 0px;
+            --tg-safe-offset: 0px;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background: var(--tg-theme-bg-color, #ffffff);
-            font-family: sans-serif;
-            /* Чтобы контент не "прыгал", задаем фон для всей страницы */
+            background: var(--tg-theme-bg-color, #fff);
+            /* Убираем лишние сдвиги у body, всё через хедер */
+            overflow-x: hidden;
         }
 
-        #header {
+        .header-container {
             background: #0088cc;
             color: white;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
+            position: relative; /* Не используем fixed, чтобы не воевать с вьюпортом */
+            width: 100%;
             
-            /* Главный фикс: отступ равен значению из JS */
-            padding-top: var(--safe-area-top);
+            /* ФОРМУЛА ПРАВИЛЬНОГО ОТСТУПА: */
+            /* Мы ПЛЮСУЕМ системный отступ (46-48px) и ваш визуальный padding (10px) */
+            padding-top: calc(var(--tg-safe-offset) + 10px);
+            padding-bottom: 10px;
             
             display: flex;
-            align-items: center;
             justify-content: center;
-            height: 50px; /* Высота самой плашки с текстом */
-            font-weight: bold;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            align-items: center;
+            text-align: center;
+            z-index: 100;
         }
 
-        .main-content {
-            /* Контент должен начинаться ПОСЛЕ хедера (хедер + отступ) */
-            padding-top: calc(var(--safe-area-top) + 60px);
-            padding-left: 20px;
-            padding-right: 20px;
+        .content {
+            padding: 20px;
             text-align: center;
         }
 
         button {
-            padding: 15px 25px;
+            padding: 15px;
+            width: 100%;
             background: #0088cc;
             color: white;
             border: none;
@@ -57,52 +54,53 @@
 </head>
 <body>
 
-    <div id="header">
-        МОЙ ЗАГОЛОВОК
+    <div class="header-container" id="header">
+        <strong>ЗАГОЛОВОК ПРИЛОЖЕНИЯ</strong>
     </div>
 
-    <div class="main-content">
+    <div class="content">
         <button onclick="toggleFS()">ПЕРЕКЛЮЧИТЬ FULLSCREEN</button>
-        <div id="debug" style="margin-top: 20px; text-align: left; font-size: 12px; background: #eee; padding: 10px;"></div>
+        <div id="debug" style="margin-top:20px; font-size:11px; text-align:left; background:#eee; padding:10px;"></div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
         tg.ready();
 
-        function applySafeAreas() {
-            // В режиме Fullscreen Telegram возвращает contentSafeAreaInset.
-            // Нам нужно убедиться, что мы берем МАКСИМАЛЬНОЕ значение, 
-            // которое гарантирует, что кнопки не перекроют текст.
-            
-            const saTop = tg.safeAreaInset ? tg.safeAreaInset.top : 0;
-            const contentTop = tg.contentSafeAreaInset ? tg.contentSafeAreaInset.top : 0;
-            
-            // В 2026 году contentSafeAreaInset должен включать в себя safeArea, 
-            // но на некоторых прошивках Android это не так. Берем максимум.
-            const finalTop = Math.max(saTop, contentTop);
+        function syncSafeAreas() {
+            // В режиме Fullscreen Telegram возвращает значения через эти поля
+            // Если они 0, значит мы не в fullscreen или API еще не обновилось
+            const safeArea = tg.safeAreaInset ? tg.safeAreaInset.top : 0;
+            const contentArea = tg.contentSafeAreaInset ? tg.contentSafeAreaInset.top : 0;
 
-            document.documentElement.style.setProperty('--safe-area-top', finalTop + 'px');
+            // СУММИРОВАНИЕ: на некоторых устройствах contentArea уже включает safeArea,
+            // на других — нет. Math.max берет гарантированно безопасную высоту.
+            let finalOffset = Math.max(safeArea, contentArea);
 
-            // Отладка
+            // Если при Fullscreen значение всё равно 0, ставим принудительный запас для Android (44px)
+            if (tg.isFullscreen && finalOffset === 0) {
+                finalOffset = 44; 
+            }
+
+            document.documentElement.style.setProperty('--tg-safe-offset', finalOffset + 'px');
+
             document.getElementById('debug').innerHTML = `
-                <b>Fullscreen:</b> ${tg.isFullscreen}<br>
-                <b>Safe Area Top:</b> ${saTop}px<br>
-                <b>Content Safe Area Top:</b> ${contentTop}px<br>
-                <b>Result:</b> ${finalTop}px
+                FS: ${tg.isFullscreen}<br>
+                Safe Inset: ${safeArea}px<br>
+                Content Inset: ${contentArea}px<br>
+                Final Padding: ${finalOffset}px
             `;
         }
 
-        // Слушаем все события изменения вьюпорта
-        tg.onEvent('safeAreaChanged', applySafeAreas);
-        tg.onEvent('contentSafeAreaChanged', applySafeAreas);
-        tg.onEvent('fullscreenChanged', applySafeAreas);
+        // Подписываемся на события изменения вьюпорта (Bot API 8.0+)
+        tg.onEvent('safeAreaChanged', syncSafeAreas);
+        tg.onEvent('contentSafeAreaChanged', syncSafeAreas);
+        tg.onEvent('fullscreenChanged', syncSafeAreas);
 
-        // Инициализация при загрузке
-        applySafeAreas();
-        
-        // Маленький хак: иногда значения прилетают через доли секунды после инициализации
-        setTimeout(applySafeAreas, 200);
+        // Инициализация
+        syncSafeAreas();
+        // Двойная проверка через 200мс (фикс для Android)
+        setTimeout(syncSafeAreas, 200);
 
         function toggleFS() {
             if (tg.isFullscreen) {
