@@ -7,7 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --safe-top: var(--tg-content-safe-area-inset-top, 0px);
+            --safe-top: var(--tg-content-safe-area-inset-top, 60px); /* Fallback 60px в CSS */
             --safe-bottom: calc(100vh - var(--tg-viewport-stable-height, 100vh));
         }
         body {
@@ -16,13 +16,13 @@
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
             box-sizing: border-box;
-            height: var(--tg-viewport-height, 100vh); /* Фикс для iOS overlapping */
-            overflow: hidden; /* Предотвращает extra скролл */
+            height: var(--tg-viewport-height, 100vh);
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            padding-top: var(--safe-top);
+            padding-top: var(--safe-top); /* Сразу fallback в CSS */
             padding-bottom: var(--safe-bottom);
             padding-left: var(--tg-content-safe-area-inset-left, 0px);
             padding-right: var(--tg-content-safe-area-inset-right, 0px);
@@ -34,7 +34,7 @@
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             width: 80%;
             max-width: 400px;
-            overflow-y: auto; /* Скролл внутри, если нужно */
+            overflow-y: auto;
         }
         button {
             padding: 10px 20px;
@@ -64,58 +64,77 @@
         <button id="log-insets-btn">Показать Insets</button>
         <p id="insets-log">Insets: не загружены</p>
     </div>
-
     <script>
-        Telegram.WebApp.ready();
-        
-        // Запросы для insets и viewport
-        Telegram.WebApp.requestContentSafeArea();
-        Telegram.WebApp.requestSafeArea();
-        // Telegram.WebApp.requestViewport(); // Не стандарт, но иногда триггерит
-
-        Telegram.WebApp.expand();
-        Telegram.WebApp.setHeaderColor('secondary_bg_color');
-
         const insetsLog = document.getElementById('insets-log');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+        const logInsetsBtn = document.getElementById('log-insets-btn');
 
+        // Функция обновления с try-catch
         function updateInsets() {
-            const insets = Telegram.WebApp.contentSafeAreaInset;
-            let top = insets.top;
-            if (top === 0) {
-                top = 60; // Увеличенный fallback для iOS (header + status ~50-80px)
-                console.warn('Insets.top = 0, fallback 60px');
+            try {
+                const insets = Telegram.WebApp.contentSafeAreaInset;
+                let top = insets.top;
+                if (top === 0 || isNaN(top)) {
+                    top = 60; // Fallback
+                    console.warn('Insets.top = 0 or NaN, fallback 60px');
+                }
+                document.body.style.paddingTop = `${top}px`;
+                document.body.style.paddingBottom = `${insets.bottom}px`;
+                document.body.style.paddingLeft = `${insets.left}px`;
+                document.body.style.paddingRight = `${insets.right}px`;
+                console.log('Content insets:', insets);
+                console.log('Safe insets:', Telegram.WebApp.safeAreaInset);
+                console.log('Viewport height:', Telegram.WebApp.viewportHeight);
+                insetsLog.textContent = `Content insets: top=${insets.top}, bottom=${insets.bottom} (used top: ${top})`;
+            } catch (error) {
+                console.error('Ошибка insets:', error);
+                document.body.style.paddingTop = '60px'; // Fallback при ошибке
+                insetsLog.textContent = 'Insets: error (not in Telegram?), using fallback 60px';
             }
-            document.body.style.paddingTop = `${top}px`;
-            document.body.style.paddingBottom = `${insets.bottom}px`;
-            document.body.style.paddingLeft = `${insets.left}px`;
-            document.body.style.paddingRight = `${insets.right}px`;
-            console.log('Content insets:', insets);
-            console.log('Safe insets:', Telegram.WebApp.safeAreaInset);
-            console.log('Viewport height:', Telegram.WebApp.viewportHeight);
-            insetsLog.textContent = `Content insets: top=${insets.top}, bottom=${insets.bottom}`;
         }
 
-        // Обновить сразу и с задержкой (для iOS багов)
-        updateInsets();
-        setTimeout(updateInsets, 500);
+        // Проверка на Telegram.WebApp
+        if (window.Telegram && window.Telegram.WebApp) {
+            Telegram.WebApp.ready();
+            Telegram.WebApp.requestContentSafeArea();
+            Telegram.WebApp.requestSafeArea();
+            Telegram.WebApp.expand();
+            Telegram.WebApp.setHeaderColor('secondary_bg_color');
 
-        Telegram.WebApp.onEvent('content_safe_area_changed', updateInsets);
-        Telegram.WebApp.onEvent('safe_area_changed', updateInsets);
-        Telegram.WebApp.onEvent('viewport_changed', updateInsets);
+            // Обновить сразу и с задержкой
+            updateInsets();
+            setTimeout(updateInsets, 500);
 
-        document.getElementById('fullscreen-btn').addEventListener('click', () => {
-            Telegram.WebApp.requestFullscreen()
-                .then(() => {
-                    console.log('В fullscreen');
-                    Telegram.WebApp.requestContentSafeArea();
-                    setTimeout(updateInsets, 100); // Задержка для обновления
-                })
-                .catch((error) => {
-                    console.error('Ошибка:', error);
-                });
-        });
+            // События
+            Telegram.WebApp.onEvent('content_safe_area_changed', updateInsets);
+            Telegram.WebApp.onEvent('safe_area_changed', updateInsets);
+            Telegram.WebApp.onEvent('viewport_changed', updateInsets);
 
-        document.getElementById('log-insets-btn').addEventListener('click', updateInsets);
+            // Кнопка fullscreen
+            fullscreenBtn.addEventListener('click', () => {
+                try {
+                    Telegram.WebApp.requestFullscreen()
+                        .then(() => {
+                            console.log('В fullscreen');
+                            Telegram.WebApp.requestContentSafeArea();
+                            setTimeout(updateInsets, 100);
+                        })
+                        .catch((error) => {
+                            console.error('Ошибка fullscreen:', error);
+                        });
+                } catch (error) {
+                    console.error('Ошибка fullscreen:', error);
+                }
+            });
+        } else {
+            // Не в Telegram: Fallback
+            console.warn('Не в Telegram Mini App, использую fallback');
+            document.body.style.paddingTop = '60px';
+            insetsLog.textContent = 'Insets: not in Telegram, fallback 60px';
+        }
+
+        // Кнопка показа insets (работает всегда)
+        logInsetsBtn.addEventListener('click', updateInsets);
     </script>
 </body>
 </html>
