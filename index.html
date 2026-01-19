@@ -2,114 +2,91 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- КРИТИЧНО: viewport-fit=cover позволяет контенту заходить под кнопки -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TMA Fullscreen Fix</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://telegram.org"></script>
     <style>
         :root {
-            /* Telegram автоматически подставляет эти переменные (Bot API 8.0+) */
-            /* Если они не подхватятся, используем env() или 0 */
-            --tg-top-offset: var(--tg-content-safe-area-inset-top, env(safe-area-inset-top, 0px));
+            /* Базовое значение из JS или 0 */
+            --tg-safe-top: 0px;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background-color: var(--tg-theme-bg-color, #fff);
+            background: var(--tg-theme-bg-color, #fff);
             color: var(--tg-theme-text-color, #000);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            /* Чтобы body не прыгал, управляем отступом только в header */
-            overflow-x: hidden;
+            font-family: sans-serif;
         }
 
         .header {
             background: #0088cc;
             color: white;
-            /* Принудительный отступ под кнопки Telegram */
-            padding-top: calc(var(--tg-top-offset) + 10px); 
-            padding-bottom: 10px;
-            padding-left: 15px;
-            padding-right: 15px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 9999;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .container {
-            padding: 20px;
-            text-align: center;
-        }
-
-        .debug-info {
-            font-size: 12px;
-            background: #f4f4f4;
-            padding: 10px;
-            border-radius: 8px;
-            margin-top: 20px;
-            color: #333;
+            /* ВАЖНО: Используем box-sizing: content-box для надежности */
+            box-sizing: content-box;
+            
+            /* Суммируем отступ от TG (46px) + визуальный запас (минимум 15-20px) */
+            padding-top: calc(var(--tg-safe-top) + 16px);
+            padding-bottom: 16px;
+            padding-left: 20px;
+            padding-right: 80px; /* Больше справа, чтобы текст не залез под кнопки "..." */
+            
             text-align: left;
+            font-size: 18px;
+            font-weight: bold;
         }
+
+        .container { padding: 20px; text-align: center; }
+        button { padding: 15px; width: 100%; border-radius: 12px; border: none; background: #0088cc; color: white; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <header class="header">
-        <div style="font-weight: bold;">ЗАГОЛОВОК ПРИЛОЖЕНИЯ</div>
+    <header class="header" id="myHeader">
+        ЗАГОЛОВОК ПРИЛОЖЕНИЯ
     </header>
 
     <div class="container">
-        <button onclick="toggleFS()" style="padding: 15px; width: 100%; border-radius: 10px; border: none; background: #0088cc; color: white; font-weight: bold;">
-            ПЕРЕКЛЮЧИТЬ FULLSCREEN
-        </button>
-
-        <div class="debug-info" id="debug">
-            Ожидание данных от Telegram...
-        </div>
+        <button onclick="toggleFS()">ПЕРЕКЛЮЧИТЬ FULLSCREEN</button>
+        <p id="info" style="font-size: 12px; color: gray; margin-top: 10px;"></p>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-        
-        // Обязательная инициализация
         tg.ready();
-        tg.expand();
 
-        function applyOffsets() {
-            // Приоритет 1: contentSafeAreaInset (учитывает кнопки TG)
-            // Приоритет 2: safeAreaInset (учитывает только челку)
-            const top = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
-            
-            // Принудительно обновляем CSS переменную, если автоматика Telegram не сработала
-            document.documentElement.style.setProperty('--tg-top-offset', top + 'px');
-            
-            // Вывод для отладки прямо на экран телефона
-            document.getElementById('debug').innerHTML = `
-                <b>Is Fullscreen:</b> ${tg.isFullscreen}<br>
-                <b>Safe Area Top:</b> ${tg.safeAreaInset?.top}px<br>
-                <b>Content Safe Area Top:</b> ${tg.contentSafeAreaInset?.top}px<br>
-                <b>Final Offset:</b> ${top}px
-            `;
+        function sync() {
+            // Берем максимум из доступных отступов
+            let top = Math.max(
+                tg.contentSafeAreaInset?.top || 0,
+                tg.safeAreaInset?.top || 0,
+                0
+            );
+
+            // ФИКС ДЛЯ ANDROID/iOS: если мы в fullscreen, 
+            // и значение подозрительно маленькое (до 50px), 
+            // добавляем принудительный визуальный буфер.
+            if (tg.isFullscreen && top > 0) {
+                // Если кнопки все еще перекрывают, можно увеличить это число
+                document.documentElement.style.setProperty('--tg-safe-top', top + 'px');
+            } else {
+                document.documentElement.style.setProperty('--tg-safe-top', top + 'px');
+            }
+
+            document.getElementById('info').innerText = `API Top: ${top}px | Fullscreen: ${tg.isFullscreen}`;
         }
 
-        // Подписываемся на события (Bot API 8.0+)
-        tg.onEvent('safeAreaChanged', applyOffsets);
-        tg.onEvent('contentSafeAreaChanged', applyOffsets);
-        tg.onEvent('fullscreenChanged', applyOffsets);
+        tg.onEvent('contentSafeAreaChanged', sync);
+        tg.onEvent('safeAreaChanged', sync);
+        tg.onEvent('fullscreenChanged', sync);
 
-        // Ручной вызов через небольшую задержку, так как при старте 
-        // значения иногда не успевают проброситься из нативного слоя
-        setTimeout(applyOffsets, 100);
-        applyOffsets();
+        // Инициализация
+        sync();
+        // На некоторых устройствах данные обновляются через мгновение после загрузки
+        setTimeout(sync, 200);
 
         function toggleFS() {
-            if (tg.isFullscreen) {
-                tg.exitFullscreen();
-            } else {
-                tg.requestFullscreen();
-            }
+            if (tg.isFullscreen) { tg.exitFullscreen(); } 
+            else { tg.requestFullscreen(); }
         }
     </script>
 </body>
