@@ -2,94 +2,86 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <!-- viewport-fit=cover обязателен для работы отступов -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>TMA Fullscreen Demo</title>
-    <!-- Подключаем скрипт Telegram -->
+    <title>TMA Fullscreen Fix</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            /* Резервные значения, если API не вернуло данные */
-            --tg-safe-area-top: 0px;
-            --tg-safe-area-bottom: 0px;
+            /* По умолчанию 0, будет обновлено из JS */
+            --safe-area-top: 0px;
         }
 
         body {
             margin: 0;
             padding: 0;
-            background-color: var(--tg-theme-bg-color, #ffffff);
-            color: var(--tg-theme-text-color, #000000);
+            background-color: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
             font-family: sans-serif;
-            /* Используем переменную для верхнего отступа */
-            padding-top: var(--tg-safe-area-top);
-            padding-bottom: var(--tg-safe-area-bottom);
-            box-sizing: border-box;
-            height: 100vh;
         }
 
+        /* Шапка с динамическим отступом */
         .header {
-            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
-            padding: 15px;
+            background: #2481cc;
+            color: white;
+            /* Суммируем системный отступ и ваш внутренний padding */
+            padding-top: calc(var(--safe-area-top) + 10px); 
+            padding-bottom: 10px;
             text-align: center;
-            border-bottom: 1px solid #ccc;
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
-        .content {
+        .container {
             padding: 20px;
             text-align: center;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 5px 10px;
-            background: #4caf50;
-            color: white;
-            border-radius: 10px;
-            margin-top: 10px;
+        button {
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <strong>Заголовок приложения</strong>
-    </div>
+    <header class="header">
+        <strong>Мой Заголовок (Не перекрывается)</strong>
+    </header>
 
-    <div class="content">
-        <p>Этот контент не будет перекрыт кнопками "Закрыть" или "...".</p>
-        <div id="fs-status" class="status-badge">Режим: Обычный</div>
-        <button onclick="toggleFullscreen()" style="margin-top: 20px; padding: 10px;">
-            Переключить Fullscreen
-        </button>
+    <div class="container">
+        <p>Если кнопки сверху все еще перекрывают текст, проверьте версию Telegram (нужна v8.0+).</p>
+        <button onclick="toggleFS()">Переключить Fullscreen</button>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
-
-        // 1. Инициализация и расширение
         tg.ready();
-        tg.expand();
 
-        // 2. Функция обновления отступов
-        function updateSafeAreas() {
-            // В новых версиях API (2025-2026) используем safeAreaInset
-            const topInset = tg.safeAreaInset ? tg.safeAreaInset.top : 0;
-            const bottomInset = tg.safeAreaInset ? tg.safeAreaInset.bottom : 0;
+        function updateOffsets() {
+            // 1. Пытаемся взять контентный отступ (самый надежный для кнопок TG)
+            // 2. Если его нет (старая версия), берем обычный safeAreaInset
+            // 3. Если и его нет, оставляем 0
+            const insetTop = (tg.contentSafeAreaInset && tg.contentSafeAreaInset.top) 
+                             || (tg.safeAreaInset && tg.safeAreaInset.top) 
+                             || 0;
 
-            document.documentElement.style.setProperty('--tg-safe-area-top', topInset + 'px');
-            document.documentElement.style.setProperty('--tg-safe-area-bottom', bottomInset + 'px');
+            document.documentElement.style.setProperty('--safe-area-top', insetTop + 'px');
             
-            document.getElementById('fs-status').innerText = tg.isFullscreen ? 'Режим: Fullscreen' : 'Режим: Обычный';
+            console.log('Текущий отступ сверху:', insetTop);
         }
 
-        // 3. Слушаем изменения безопасной зоны и режима экрана
-        tg.onEvent('safeAreaChanged', updateSafeAreas);
-        tg.onEvent('fullscreenChanged', updateSafeAreas);
+        // Подписываемся на все события изменения вьюпорта
+        tg.onEvent('contentSafeAreaChanged', updateOffsets);
+        tg.onEvent('safeAreaChanged', updateOffsets);
+        tg.onEvent('fullscreenChanged', updateOffsets);
 
-        // Начальный вызов
-        updateSafeAreas();
+        // Инициализация при старте
+        updateOffsets();
 
-        // Переключение полноэкранного режима
-        function toggleFullscreen() {
+        function toggleFS() {
             if (tg.isFullscreen) {
                 tg.exitFullscreen();
             } else {
