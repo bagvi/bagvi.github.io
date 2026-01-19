@@ -2,26 +2,30 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"> <!-- Добавлен viewport-fit=cover -->
     <title>Telegram Mini App Example</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script> <!-- Официальный скрипт Telegram -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
+        :root {
+            /* Опционально, для fallback, но лучше JS */
+            --safe-top: var(--tg-content-safe-area-inset-top, 0px);
+        }
         body {
             margin: 0;
             padding: 0;
             background-color: #f0f0f0;
             font-family: Arial, sans-serif;
-            /* Основные отступы для безопасных зон */
-            padding-top: var(--tg-content-safe-area-inset-top, 0px); /* Отступ сверху для кнопок "Закрыть" и "..." */
-            padding-bottom: var(--tg-content-safe-area-inset-bottom, 0px);
-            padding-left: var(--tg-content-safe-area-inset-left, 0px);
-            padding-right: var(--tg-content-safe-area-inset-right, 0px);
             box-sizing: border-box;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             text-align: center;
+            /* CSS-vars для отступов, но JS перезапишет */
+            padding-top: var(--safe-top);
+            padding-bottom: var(--tg-content-safe-area-inset-bottom, 0px);
+            padding-left: var(--tg-content-safe-area-inset-left, 0px);
+            padding-right: var(--tg-content-safe-area-inset-right, 0px);
         }
         .content {
             background-color: white;
@@ -50,34 +54,54 @@
         <p>Это контент, который не должен перекрываться кнопками Telegram.</p>
         <p>Нажми кнопку ниже, чтобы перейти в fullscreen.</p>
         <button id="fullscreen-btn">Войти в Fullscreen</button>
+        <button id="log-insets-btn">Лог Insets в консоль</button> <!-- Для теста -->
     </div>
 
     <script>
-        // Инициализация Web App
+        // Инициализация
         Telegram.WebApp.ready();
         
-        // Расширение на весь viewport (опционально, для старта)
+        // Расширение на весь viewport (активирует insets)
         Telegram.WebApp.expand();
 
-        // Установка цвета заголовка (чтобы не было прозрачным в fullscreen)
+        // Установка цвета заголовка
         Telegram.WebApp.setHeaderColor('secondary_bg_color');
 
-        // Кнопка для fullscreen
+        // Функция для установки отступов из JS (надёжнее CSS)
+        function updateInsets() {
+            const insets = Telegram.WebApp.contentSafeAreaInset;
+            document.body.style.paddingTop = `${insets.top}px`;
+            document.body.style.paddingBottom = `${insets.bottom}px`;
+            document.body.style.paddingLeft = `${insets.left}px`;
+            document.body.style.paddingRight = `${insets.right}px`;
+            console.log('Обновлённые insets:', insets);
+        }
+
+        // Установить сразу
+        updateInsets();
+
+        // Слушать изменения
+        Telegram.WebApp.onEvent('content_safe_area_changed', updateInsets);
+        Telegram.WebApp.onEvent('safe_area_changed', () => {
+            console.log('Safe area changed:', Telegram.WebApp.safeAreaInset);
+        });
+
+        // Кнопка fullscreen
         document.getElementById('fullscreen-btn').addEventListener('click', () => {
             Telegram.WebApp.requestFullscreen()
                 .then(() => {
-                    console.log('Вошли в fullscreen');
+                    console.log('В fullscreen, insets могут обновиться');
+                    updateInsets(); // Перепроверить после fullscreen
                 })
                 .catch((error) => {
                     console.error('Ошибка fullscreen:', error);
                 });
         });
 
-        // Пример слушателя события изменения safe areas (опционально)
-        Telegram.WebApp.onEvent('content_safe_area_changed', (event) => {
-            console.log('Новые insets:', event);
-            // Можно динамически обновить стили, например:
-            document.body.style.paddingTop = `${event.top}px`;
+        // Кнопка для лога (для теста)
+        document.getElementById('log-insets-btn').addEventListener('click', () => {
+            console.log('Текущие content insets:', Telegram.WebApp.contentSafeAreaInset);
+            console.log('Текущие safe insets:', Telegram.WebApp.safeAreaInset);
         });
     </script>
 </body>
