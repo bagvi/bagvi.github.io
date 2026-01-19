@@ -53,15 +53,17 @@
         }
 
         .header {
-            position: absolute;
-            top: calc(var(--tg-safe-area-inset-top, 0px) + 10px);
-            left: 0;
-            right: 0;
+            position: fixed; /* Важно! Фиксируем позицию */
+            top: calc(var(--tg-safe-area-inset-top, 0px) + var(--tg-content-safe-area-inset-top, 0px));
+            left: var(--tg-safe-area-inset-left, 0px);
+            right: var(--tg-safe-area-inset-right, 0px);
             text-align: center;
             z-index: 100;
             padding: 0 20px;
             font-weight: bold;
             font-size: 18px;
+            background: var(--tg-theme-bg-color, #ffffff); /* Фон, чтобы было видно над контентом */
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Тень для лучшей видимости */
         }
 
         .status-info {
