@@ -1,34 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         body {
             margin: 0;
             padding: 0;
+            font-family: Arial, sans-serif;
         }
-        .app {
+        
+        .content {
+            /* ЭТО ВАЖНО: используем telegram safe area */
+            padding-top: var(--tg-viewport-safe-area-inset-top, 0px);
+            padding-bottom: var(--tg-viewport-safe-area-inset-bottom, 0px);
+            padding-left: 20px;
+            padding-right: 20px;
             min-height: 100vh;
-            /* ВСЕ! Telegram сам подставит нужные отступы */
-            padding: var(--tg-viewport-safe-area-inset-top, 20px) 
-                     var(--tg-viewport-safe-area-inset-right, 20px) 
-                     var(--tg-viewport-safe-area-inset-bottom, 20px) 
-                     var(--tg-viewport-safe-area-inset-left, 20px);
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
+            background: lightblue;
+        }
+        
+        h1 {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 0;
         }
     </style>
 </head>
 <body>
-    <div class="app">
-        <h1>Мой TMA</h1>
-        <p>Всё работает. Контент не перекрывается.</p>
+    <div class="content">
+        <h1>Заголовок не перекрывается</h1>
+        <p>Простой текст для теста</p>
+        <button onclick="toggleFullscreen()">Fullscreen</button>
     </div>
-    
+
     <script>
         Telegram.WebApp.ready();
-        Telegram.WebApp.expand(); // Переходим в fullscreen
+        
+        function toggleFullscreen() {
+            if (!Telegram.WebApp.isExpanded) {
+                Telegram.WebApp.expand();
+            }
+        }
     </script>
 </body>
 </html>
