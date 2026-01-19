@@ -2,14 +2,15 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <!-- viewport-fit=cover обязателен для работы отступов -->
+    <!-- КРИТИЧНО: viewport-fit=cover позволяет контенту заходить под кнопки -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>TMA Fullscreen Fix</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            /* По умолчанию 0, будет обновлено из JS */
-            --safe-area-top: 0px;
+            /* Telegram автоматически подставляет эти переменные (Bot API 8.0+) */
+            /* Если они не подхватятся, используем env() или 0 */
+            --tg-top-offset: var(--tg-content-safe-area-inset-top, env(safe-area-inset-top, 0px));
         }
 
         body {
@@ -17,20 +18,24 @@
             padding: 0;
             background-color: var(--tg-theme-bg-color, #fff);
             color: var(--tg-theme-text-color, #000);
-            font-family: sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            /* Чтобы body не прыгал, управляем отступом только в header */
+            overflow-x: hidden;
         }
 
-        /* Шапка с динамическим отступом */
         .header {
-            background: #2481cc;
+            background: #0088cc;
             color: white;
-            /* Суммируем системный отступ и ваш внутренний padding */
-            padding-top: calc(var(--safe-area-top) + 10px); 
+            /* Принудительный отступ под кнопки Telegram */
+            padding-top: calc(var(--tg-top-offset) + 10px); 
             padding-bottom: 10px;
+            padding-left: 15px;
+            padding-right: 15px;
             text-align: center;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 9999;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         .container {
@@ -38,48 +43,66 @@
             text-align: center;
         }
 
-        button {
-            padding: 12px 20px;
-            font-size: 16px;
-            cursor: pointer;
+        .debug-info {
+            font-size: 12px;
+            background: #f4f4f4;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 20px;
+            color: #333;
+            text-align: left;
         }
     </style>
 </head>
 <body>
 
     <header class="header">
-        <strong>Мой Заголовок (Не перекрывается)</strong>
+        <div style="font-weight: bold;">ЗАГОЛОВОК ПРИЛОЖЕНИЯ</div>
     </header>
 
     <div class="container">
-        <p>Если кнопки сверху все еще перекрывают текст, проверьте версию Telegram (нужна v8.0+).</p>
-        <button onclick="toggleFS()">Переключить Fullscreen</button>
+        <button onclick="toggleFS()" style="padding: 15px; width: 100%; border-radius: 10px; border: none; background: #0088cc; color: white; font-weight: bold;">
+            ПЕРЕКЛЮЧИТЬ FULLSCREEN
+        </button>
+
+        <div class="debug-info" id="debug">
+            Ожидание данных от Telegram...
+        </div>
     </div>
 
     <script>
         const tg = window.Telegram.WebApp;
+        
+        // Обязательная инициализация
         tg.ready();
+        tg.expand();
 
-        function updateOffsets() {
-            // 1. Пытаемся взять контентный отступ (самый надежный для кнопок TG)
-            // 2. Если его нет (старая версия), берем обычный safeAreaInset
-            // 3. Если и его нет, оставляем 0
-            const insetTop = (tg.contentSafeAreaInset && tg.contentSafeAreaInset.top) 
-                             || (tg.safeAreaInset && tg.safeAreaInset.top) 
-                             || 0;
-
-            document.documentElement.style.setProperty('--safe-area-top', insetTop + 'px');
+        function applyOffsets() {
+            // Приоритет 1: contentSafeAreaInset (учитывает кнопки TG)
+            // Приоритет 2: safeAreaInset (учитывает только челку)
+            const top = tg.contentSafeAreaInset?.top || tg.safeAreaInset?.top || 0;
             
-            console.log('Текущий отступ сверху:', insetTop);
+            // Принудительно обновляем CSS переменную, если автоматика Telegram не сработала
+            document.documentElement.style.setProperty('--tg-top-offset', top + 'px');
+            
+            // Вывод для отладки прямо на экран телефона
+            document.getElementById('debug').innerHTML = `
+                <b>Is Fullscreen:</b> ${tg.isFullscreen}<br>
+                <b>Safe Area Top:</b> ${tg.safeAreaInset?.top}px<br>
+                <b>Content Safe Area Top:</b> ${tg.contentSafeAreaInset?.top}px<br>
+                <b>Final Offset:</b> ${top}px
+            `;
         }
 
-        // Подписываемся на все события изменения вьюпорта
-        tg.onEvent('contentSafeAreaChanged', updateOffsets);
-        tg.onEvent('safeAreaChanged', updateOffsets);
-        tg.onEvent('fullscreenChanged', updateOffsets);
+        // Подписываемся на события (Bot API 8.0+)
+        tg.onEvent('safeAreaChanged', applyOffsets);
+        tg.onEvent('contentSafeAreaChanged', applyOffsets);
+        tg.onEvent('fullscreenChanged', applyOffsets);
 
-        // Инициализация при старте
-        updateOffsets();
+        // Ручной вызов через небольшую задержку, так как при старте 
+        // значения иногда не успевают проброситься из нативного слоя
+        setTimeout(applyOffsets, 100);
+        applyOffsets();
 
         function toggleFS() {
             if (tg.isFullscreen) {
