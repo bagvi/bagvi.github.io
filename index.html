@@ -3,135 +3,341 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Telegram Mini App Example</title>
+    <title>Telegram Mini App - Safe Area Demo</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root {
-            --safe-top: var(--tg-content-safe-area-inset-top, 60px); /* Fallback 60px (среднее твоих тестов) */
-            --safe-bottom: calc(100vh - var(--tg-viewport-stable-height, 100vh));
-        }
-        body {
+        * {
             margin: 0;
             padding: 0;
-            background-color: #f0f0f0;
-            font-family: Arial, sans-serif;
             box-sizing: border-box;
-            height: var(--tg-viewport-height, 100vh);
-            overflow: hidden;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+            transition: all 0.3s ease;
+        }
+
+        /* Основные безопасные отступы */
+        .safe-area-container {
+            min-height: 100vh;
+            padding-top: calc(var(--tg-viewport-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 20px);
+            padding-right: calc(var(--tg-viewport-safe-area-inset-right, env(safe-area-inset-right, 0px)) + 20px);
+            padding-bottom: calc(var(--tg-viewport-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 20px);
+            padding-left: calc(var(--tg-viewport-safe-area-inset-left, env(safe-area-inset-left, 0px)) + 20px);
             display: flex;
             flex-direction: column;
-            align-items: center;
+        }
+
+        .header {
             text-align: center;
-            padding-top: var(--safe-top); /* Fallback сразу, insets обновятся автоматически */
-            padding-bottom: var(--safe-bottom);
-            padding-left: var(--tg-content-safe-area-inset-left, 0px);
-            padding-right: var(--tg-content-safe-area-inset-right, 0px);
-            transition: padding-top 0.3s ease; /* Плавный сдвиг */
+            margin-bottom: 30px;
         }
-        .content {
-            background-color: white;
-            padding: 0 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            width: 80%;
-            max-width: 400px;
-            overflow-y: auto;
-            display: none; /* Скрыто до стабильного viewport */
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
         }
-        .loader {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+
+        .header p {
+            opacity: 0.9;
             font-size: 16px;
-            color: #666;
         }
+
+        .demo-content {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            overflow-y: auto;
+        }
+
+        .demo-content h2 {
+            margin-bottom: 20px;
+            font-size: 20px;
+        }
+
+        .demo-content p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .status-card {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
         button {
-            padding: 10px 20px;
-            background-color: #0088cc;
-            color: white;
+            flex: 1;
+            min-width: 140px;
+            background: rgba(255, 255, 255, 0.2);
             border: none;
-            border-radius: 5px;
+            border-radius: 12px;
+            color: white;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            margin-top: 20px;
+            transition: all 0.2s;
+            backdrop-filter: blur(5px);
         }
+
         button:hover {
-            background-color: #0077bb;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
         }
-        #insets-log {
-            font-size: 12px;
-            color: #666;
+
+        button.primary {
+            background: #40a7e3;
+        }
+
+        button.primary:hover {
+            background: #3390cc;
+        }
+
+        button.danger {
+            background: #e34c40;
+        }
+
+        button.danger:hover {
+            background: #cc4036;
+        }
+
+        .indicator {
+            position: fixed;
+            pointer-events: none;
+            border: 2px dashed rgba(255, 255, 255, 0.5);
+            border-radius: 8px;
+            z-index: 1000;
+        }
+
+        .indicator.top {
+            top: 0;
+            left: 20px;
+            right: 20px;
+            height: calc(var(--tg-viewport-safe-area-inset-top, env(safe-area-inset-top, 0px)) + 20px);
+        }
+
+        .indicator.bottom {
+            bottom: 0;
+            left: 20px;
+            right: 20px;
+            height: calc(var(--tg-viewport-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) + 20px);
+        }
+
+        .indicator.left {
+            left: 0;
+            top: 20px;
+            bottom: 20px;
+            width: calc(var(--tg-viewport-safe-area-inset-left, env(safe-area-inset-left, 0px)) + 20px);
+        }
+
+        .indicator.right {
+            right: 0;
+            top: 20px;
+            bottom: 20px;
+            width: calc(var(--tg-viewport-safe-area-inset-right, env(safe-area-inset-right, 0px)) + 20px);
+        }
+
+        .viewport-info {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 15px;
             margin-top: 20px;
+            font-size: 14px;
+            font-family: monospace;
+        }
+
+        @media (max-width: 480px) {
+            .button-group {
+                flex-direction: column;
+            }
+            
+            button {
+                min-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="loader">Загрузка...</div>
-    <div class="content">
-        <h1>Привет из Mini App!</h1>
-        <p>Это контент, который не должен перекрываться кнопками Telegram.</p>
-        <p>Нажми кнопку ниже, чтобы перейти в fullscreen.</p>
-        <button id="fullscreen-btn">Войти в Fullscreen</button>
-        <button id="log-insets-btn">Показать Insets</button>
-        <p id="insets-log">Insets: не загружены</p>
+    <div class="indicator top" id="top-indicator"></div>
+    <div class="indicator bottom" id="bottom-indicator"></div>
+    <div class="indicator left" id="left-indicator"></div>
+    <div class="indicator right" id="right-indicator"></div>
+
+    <div class="safe-area-container" id="app">
+        <div class="header">
+            <h1>Telegram Mini App Safe Area Demo</h1>
+            <p>Контент не перекрывается системными элементами Telegram</p>
+        </div>
+
+        <div class="demo-content">
+            <h2>Как работают безопасные отступы</h2>
+            <p>В режиме fullscreen Telegram скрывает стандартные кнопки, но на мобильных устройствах остаются системные элементы (вырез камеры, индикатор времени, жесты навигации).</p>
+            <p>Для корректного отображения контента используйте CSS-переменные:</p>
+            
+            <div class="status-card">
+                <div class="status-item">
+                    <span>Сверху (top safe area):</span>
+                    <span id="top-value">0px</span>
+                </div>
+                <div class="status-item">
+                    <span>Снизу (bottom safe area):</span>
+                    <span id="bottom-value">0px</span>
+                </div>
+                <div class="status-item">
+                    <span>Слева (left safe area):</span>
+                    <span id="left-value">0px</span>
+                </div>
+                <div class="status-item">
+                    <span>Справа (right safe area):</span>
+                    <span id="right-value">0px</span>
+                </div>
+            </div>
+
+            <p>Эти значения автоматически обновляются при изменении viewport (поворот экрана, изменение размера).</p>
+            
+            <div class="viewport-info">
+                <div>Текущая высота viewport: <span id="viewport-height">0</span>px</div>
+                <div>Текущая ширина viewport: <span id="viewport-width">0</span>px</div>
+                <div>Режим fullscreen: <span id="is-expanded">нет</span></div>
+                <div>Платформа: <span id="platform">не определена</span></div>
+            </div>
+        </div>
+
+        <div class="button-group">
+            <button class="primary" id="expand-btn">Включить Fullscreen</button>
+            <button id="color-btn">Сменить цвет фона</button>
+            <button class="danger" id="close-btn">Закрыть приложение</button>
+        </div>
     </div>
+
     <script>
-        const insetsLog = document.getElementById('insets-log');
-        const contentDiv = document.querySelector('.content');
-        const loaderDiv = document.querySelector('.loader');
-
-        function updateInsets() {
-            try {
-                let top = Telegram.WebApp.contentSafeAreaInset ? Telegram.WebApp.contentSafeAreaInset.top || 0 : 0;
-                let bottom = Telegram.WebApp.contentSafeAreaInset ? Telegram.WebApp.contentSafeAreaInset.bottom || 0 : 0;
-                if (top === 0) {
-                    top = 50; // Fallback, если insets недоступны
-                    console.log('Using fallback top: 50px');
-                }
-                document.body.style.paddingTop = `${top}px`;
-                document.body.style.paddingBottom = `${bottom}px`;
-                insetsLog.textContent = `Insets: top=${top}, bottom=${bottom} (version: ${Telegram.WebApp.version})`;
-
-                // Показать контент, если stable
-                if (Telegram.WebApp.isExpanded || Telegram.WebApp.viewportStableHeight > 0) {
-                    loaderDiv.style.display = 'none';
-                    contentDiv.style.display = 'block';
-                }
-            } catch (error) {
-                console.error('Insets error:', error);
-                document.body.style.paddingTop = '50px';
-                insetsLog.textContent = 'Insets: error, fallback 50px';
-                loaderDiv.style.display = 'none';
-                contentDiv.style.display = 'block';
-            }
+        // Инициализация Telegram Web App
+        const tg = window.Telegram.WebApp;
+        
+        // Инициализируем приложение
+        tg.ready();
+        
+        // Элементы DOM
+        const topValue = document.getElementById('top-value');
+        const bottomValue = document.getElementById('bottom-value');
+        const leftValue = document.getElementById('left-value');
+        const rightValue = document.getElementById('right-value');
+        const viewportHeight = document.getElementById('viewport-height');
+        const viewportWidth = document.getElementById('viewport-width');
+        const isExpanded = document.getElementById('is-expanded');
+        const platform = document.getElementById('platform');
+        const expandBtn = document.getElementById('expand-btn');
+        const colorBtn = document.getElementById('color-btn');
+        const closeBtn = document.getElementById('close-btn');
+        
+        // Функция для обновления отображения безопасных зон
+        function updateSafeAreaDisplay() {
+            // Получаем значения safe area insets
+            const top = getComputedStyle(document.documentElement).getPropertyValue('--tg-viewport-safe-area-inset-top') || 
+                       'env(safe-area-inset-top, 0px)';
+            const bottom = getComputedStyle(document.documentElement).getPropertyValue('--tg-viewport-safe-area-inset-bottom') || 
+                         'env(safe-area-inset-bottom, 0px)';
+            const left = getComputedStyle(document.documentElement).getPropertyValue('--tg-viewport-safe-area-inset-left') || 
+                       'env(safe-area-inset-left, 0px)';
+            const right = getComputedStyle(document.documentElement).getPropertyValue('--tg-viewport-safe-area-inset-right') || 
+                        'env(safe-area-inset-right, 0px)';
+            
+            // Обновляем значения в интерфейсе
+            topValue.textContent = top;
+            bottomValue.textContent = bottom;
+            leftValue.textContent = left;
+            rightValue.textContent = right;
+            
+            // Обновляем индикаторы безопасных зон
+            document.getElementById('top-indicator').style.height = `calc(${top} + 20px)`;
+            document.getElementById('bottom-indicator').style.height = `calc(${bottom} + 20px)`;
+            document.getElementById('left-indicator').style.width = `calc(${left} + 20px)`;
+            document.getElementById('right-indicator').style.width = `calc(${right} + 20px)`;
+            
+            // Обновляем информацию о viewport
+            viewportHeight.textContent = tg.viewportHeight;
+            viewportWidth.textContent = tg.viewportWidth;
+            isExpanded.textContent = tg.isExpanded ? 'да' : 'нет';
+            platform.textContent = tg.platform;
         }
-
-        if (window.Telegram && window.Telegram.WebApp) {
-            Telegram.WebApp.ready();
-            Telegram.WebApp.expand();
-
-            updateInsets(); // Сразу
-
-            // События (если поддерживаются в версии)
-            if (typeof Telegram.WebApp.onEvent === 'function') {
-                Telegram.WebApp.onEvent('viewport_changed', updateInsets);
+        
+        // Обработчик изменения viewport
+        tg.onEvent('viewportChanged', updateSafeAreaDisplay);
+        
+        // Обработчик нажатия кнопки fullscreen
+        expandBtn.addEventListener('click', () => {
+            if (tg.isExpanded) {
+                // Выход из fullscreen (если доступно)
+                // Примечание: Telegram Web App не предоставляет метод для выхода из fullscreen,
+                // но можно использовать tg.close() чтобы закрыть приложение
+                tg.showAlert('Для выхода из fullscreen закройте приложение');
+            } else {
+                // Вход в fullscreen режим
+                tg.expand();
+                expandBtn.textContent = 'Fullscreen включен';
             }
-
-            // Fullscreen (если поддерживается)
-            document.getElementById('fullscreen-btn').addEventListener('click', () => {
-                if (typeof Telegram.WebApp.requestFullscreen === 'function') {
-                    Telegram.WebApp.requestFullscreen().then(updateInsets).catch(console.error);
-                } else {
-                    console.log('Fullscreen not supported in this version');
-                }
-            });
-
-            document.getElementById('log-insets-btn').addEventListener('click', updateInsets);
-        } else {
-            loaderDiv.style.display = 'none';
-            contentDiv.style.display = 'block';
-            insetsLog.textContent = 'Insets: not in Telegram, fallback 50px';
-        }
+        });
+        
+        // Обработчик смены цвета фона
+        colorBtn.addEventListener('click', () => {
+            const colors = [
+                'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
+                'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
+                'linear-gradient(135deg, #fa709a 0%, #fee140 100%)'
+            ];
+            
+            const currentColor = document.body.style.background;
+            let newColor;
+            
+            do {
+                newColor = colors[Math.floor(Math.random() * colors.length)];
+            } while (newColor === currentColor && colors.length > 1);
+            
+            document.body.style.background = newColor;
+        });
+        
+        // Обработчик закрытия приложения
+        closeBtn.addEventListener('click', () => {
+            tg.close();
+        });
+        
+        // Инициализация отображения при загрузке
+        document.addEventListener('DOMContentLoaded', updateSafeAreaDisplay);
+        
+        // Также обновляем при изменении размера окна
+        window.addEventListener('resize', updateSafeAreaDisplay);
+        
+        // Выводим информацию о версии SDK в консоль
+        console.log('Telegram WebApp SDK версия:', tg.version);
+        console.log('Инициализация завершена, платформа:', tg.platform);
     </script>
 </body>
 </html>
